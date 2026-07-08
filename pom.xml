@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.cat2</groupId>
+    <artifactId>java-rmi-cat2</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.release>21</maven.compiler.release>
+        <javafx.version>21.0.5</javafx.version>
+        <!-- Override on the command line, e.g. -Dregistry.host=192.168.1.10 -->
+        <registry.host>localhost</registry.host>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <version>8.4.0</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- JavaFX clients: mvn javafx:run@task3-client / @task4-client -->
+            <plugin>
+                <groupId>org.openjfx</groupId>
+                <artifactId>javafx-maven-plugin</artifactId>
+                <version>0.0.8</version>
+                <configuration>
+                    <options>
+                        <option>-Dregistry.host=${registry.host}</option>
+                    </options>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>task3-client</id>
+                        <configuration>
+                            <mainClass>com.cat2.task3.EchoClientFX</mainClass>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>task4-client</id>
+                        <configuration>
+                            <mainClass>com.cat2.task4.StudentClientFX</mainClass>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Console programs (servers, registry, task1 client): mvn exec:java@<id> -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <id>task1-server</id>
+                        <configuration>
+                            <mainClass>com.cat2.task1.HelloServer</mainClass>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>task1-client</id>
+                        <configuration>
+                            <mainClass>com.cat2.task1.HelloClient</mainClass>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>task2-registry</id>
+                        <configuration>
+                            <mainClass>com.cat2.task2.RegistryHost</mainClass>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>task3-server</id>
+                        <configuration>
+                            <mainClass>com.cat2.task3.EchoServer</mainClass>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>task4-server</id>
+                        <configuration>
+                            <mainClass>com.cat2.task4.StudentServer</mainClass>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

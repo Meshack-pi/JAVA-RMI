@@ -1,14 +1,4 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
-
-
-/**
- *
- * @author harshvirsinghahuja
- */
-// Name: [Your Name] | Student Number: [Your Number] | Date: July 2026
+package com.cat2.task4;
 
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -21,45 +11,20 @@ import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.control.ListView;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 public class StudentClientFX extends Application {
 
     private StudentService stub;
-    private TableView<Student> tableView;
+    private final ObservableList<String> studentRows = FXCollections.observableArrayList();
     private Label statusLabel;
 
     @Override
     public void start(Stage primaryStage) {
-
-        tableView = new TableView<>();
-
-        TableColumn<Student, Integer> colId = new TableColumn<>("ID");
-        colId.setCellValueFactory(new PropertyValueFactory<>("id"));
-        colId.setPrefWidth(50);
-
-        TableColumn<Student, String> colName = new TableColumn<>("Name");
-        colName.setCellValueFactory(new PropertyValueFactory<>("name"));
-        colName.setPrefWidth(120);
-
-        TableColumn<Student, String> colCourse = new TableColumn<>("Course");
-        colCourse.setCellValueFactory(new PropertyValueFactory<>("course"));
-        colCourse.setPrefWidth(80);
-
-        TableColumn<Student, Integer> colScore = new TableColumn<>("Score");
-        colScore.setCellValueFactory(new PropertyValueFactory<>("score"));
-        colScore.setPrefWidth(70);
-
-        TableColumn<Student, String> colEmail = new TableColumn<>("Email");
-        colEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
-        colEmail.setPrefWidth(180);
-
-        tableView.getColumns().addAll(colId, colName, colCourse, colScore, colEmail);
-        tableView.setPrefHeight(300);
+        ListView<String> listView = new ListView<>(studentRows);
+        listView.setPrefHeight(300);
 
         statusLabel = new Label("Connecting to server...");
 
@@ -68,24 +33,24 @@ public class StudentClientFX extends Application {
 
         VBox root = new VBox(10,
             new Label("Student Records from Server Database"),
-            tableView,
+            listView,
             statusLabel,
             refreshButton
         );
         root.setPadding(new Insets(15));
 
-        Scene scene = new Scene(root, 550, 420);
-        primaryStage.setTitle("Q4 - RMI Student Database");
-        primaryStage.setScene(scene);
+        primaryStage.setTitle("Task 4 - RMI Student Database");
+        primaryStage.setScene(new Scene(root, 550, 420));
         primaryStage.show();
 
         connectAndLoad();
     }
 
     private void connectAndLoad() {
+        String registryHost = System.getProperty("registry.host", "localhost");
         new Thread(() -> {
             try {
-                Registry registry = LocateRegistry.getRegistry("localhost", 1099);
+                Registry registry = LocateRegistry.getRegistry(registryHost, StudentServer.REGISTRY_PORT);
                 stub = (StudentService) registry.lookup("StudentService");
 
                 Platform.runLater(() -> statusLabel.setText("Connected! Loading students..."));
@@ -102,10 +67,12 @@ public class StudentClientFX extends Application {
             try {
                 List<Student> students = stub.getStudents();
 
-                ObservableList<Student> data = FXCollections.observableArrayList(students);
-
                 Platform.runLater(() -> {
-                    tableView.setItems(data);
+                    studentRows.clear();
+                    for (Student s : students) {
+                        studentRows.add(String.format("%d | %s | %s | %d | %s",
+                                s.getId(), s.getName(), s.getCourse(), s.getScore(), s.getEmail()));
+                    }
                     statusLabel.setText("Loaded " + students.size() + " students.");
                 });
 

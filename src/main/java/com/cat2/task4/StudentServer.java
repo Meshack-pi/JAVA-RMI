@@ -1,15 +1,4 @@
-
-
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
-
-/**
- *
- * @author harshvirsinghahuja
- */
-// Name: [Your Name] | Student Number: [Your Number] | Date: July 2026
+package com.cat2.task4;
 
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -24,11 +13,13 @@ import java.util.List;
 
 public class StudentServer extends UnicastRemoteObject implements StudentService {
 
-    private static final String DB_URL  = "jdbc:mysql://localhost:3306/rmi_db";
-    private static final String DB_USER = "root";
-    private static final String DB_PASS = "Harshvir082005"; // ← change this
+    public static final int REGISTRY_PORT = 1099;
 
-    public StudentServer() throws RemoteException {
+    private static final String DB_URL = "jdbc:mysql://localhost:3306/rmi_db";
+    private static final String DB_USER = "root";
+    private static final String DB_PASS = "12345678";
+
+    protected StudentServer() throws RemoteException {
         super();
     }
 
@@ -36,12 +27,9 @@ public class StudentServer extends UnicastRemoteObject implements StudentService
     public List<Student> getStudents() throws RemoteException {
         List<Student> students = new ArrayList<>();
 
-        try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
-
-            Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery("SELECT * FROM student_data");
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT * FROM student_data")) {
 
             while (rs.next()) {
                 students.add(new Student(
@@ -52,10 +40,6 @@ public class StudentServer extends UnicastRemoteObject implements StudentService
                     rs.getString("EMAIL")
                 ));
             }
-
-            rs.close();
-            stmt.close();
-            conn.close();
 
             System.out.println("Fetched " + students.size() + " students from DB");
 
@@ -68,11 +52,17 @@ public class StudentServer extends UnicastRemoteObject implements StudentService
 
     public static void main(String[] args) {
         try {
-            StudentServer serverObject = new StudentServer();
-            Registry registry = LocateRegistry.createRegistry(1099);
-            registry.rebind("StudentService", serverObject);
+            Registry registry;
+            try {
+                registry = LocateRegistry.createRegistry(REGISTRY_PORT);
+            } catch (RemoteException alreadyRunning) {
+                registry = LocateRegistry.getRegistry(REGISTRY_PORT);
+            }
 
-            System.out.println("Server is running...");
+            StudentServer serverObject = new StudentServer();
+            registry.rebind("StudentService", serverObject);
+            System.out.println("StudentServer is running on port " + REGISTRY_PORT + "...");
+            Thread.currentThread().join(); // keep the server (and mvn exec:java) alive
 
         } catch (Exception e) {
             e.printStackTrace();
